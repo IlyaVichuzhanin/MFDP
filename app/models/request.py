@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 class Request(SQLModel, table=True):
     __tablename__="requests"
     id: Optional[uuid.UUID] = Field(primary_key=True, unique=True, default_factory=uuid.uuid4)
-    claster: Optional[int] = Field(index=True)
+    cluster: int = Field(index=True)
     pickup_date_time: str = Field(index=True)
     date_time_request: str = Field(index=True, default=datetime.datetime.now())
     user_id: Optional[uuid.UUID] = Field(foreign_key="users.id")
