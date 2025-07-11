@@ -1,15 +1,12 @@
 from models.user import User
 from models.request import Request
 from models.response import Response
-from services.crud.balance import get_balance_by_user_id, decrease_user_balance
-from services.crud.price import get_current_price
 from mlmodel import MLmodel
 from services.crud.request import create_request
 from services.crud.response import create_response
 from typing import Optional
 from io import BytesIO
 import PIL.Image as Image
-import torch
 import datetime
 from sqlmodel import Session
 import io

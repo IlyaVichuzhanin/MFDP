@@ -8,7 +8,6 @@ from database.config import get_settings
 from auth.authanticate import authenticate_cookie
 
 
-
 response_router = APIRouter(tags=['Response'])
 hash_password = HashPassword() 
 templates = Jinja2Templates(directory="view")

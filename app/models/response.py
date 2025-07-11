@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 class Response(SQLModel, table=True):
     __tablename__="responses"
     id: Optional[uuid.UUID] = Field(primary_key=True, unique=True, default_factory=uuid.uuid4)
-    response: str= Field(index=True)
+    demand: int= Field(index=True)
     date_time: str = Field(index=True, default=datetime.datetime.now())
     user_id: Optional[uuid.UUID] = Field(foreign_key="users.id")
     user: Optional["User"] = Relationship(

@@ -18,10 +18,12 @@ import os
 from datetime import datetime
 
 
+
 ml_router=APIRouter()
 templates = Jinja2Templates(directory="view")
 templates = Jinja2Templates(directory="view")
 settings=get_settings()
+date_format = "%Y-%m-%d %H:%M:%S"
 
 
 
@@ -37,7 +39,7 @@ def get_prediction(
         }
 
         df = pd.DataFrame(data)
-        model_path = 'shared_data/xgboost_model.pkl.pkl'
+        model_path = 'shared_data/xgboost_model.pkl'
         
         if not os.path.exists(model_path):
             raise HTTPException(status_code=404, detail="Model file not found")
