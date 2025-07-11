@@ -1,17 +1,12 @@
-# from transformers import BlipForConditionalGeneration, BlipProcessor
+import joblib
 
 class MLmodel:
 
     def __init__(self):
-        self.__model= "" #BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
-        self.__image_processor = "" #BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
+        self.__model= joblib.load('xgboost_model.pkl')
 
+    @property
+    def model(self):
+        return self.__model
 
-    # @property
-    # def model(self):
-    #     return self.__model
-    
-    # @property
-    # def image_processor(self):
-    #     return self.__image_processor
     

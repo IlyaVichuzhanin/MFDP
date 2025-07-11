@@ -28,30 +28,40 @@ date_format = "%Y-%m-%d %H:%M:%S"
 
 
 @ml_router.get('/get_prediction')
-def get_prediction(
+async def get_prediction(
+    request:Request,
     claster_number: int, 
-    trip_date_time: datetime):
+    trip_date_time: datetime,
+    session=Depends(get_session)
+    ):
+    token=request.cookies.get(settings.COOKIE_NAME)
+    user_email = await authenticate_cookie(token)
+    if token:
+        if user_email:
+            user = UserService.get_user_by_email(user_email,session)
+            if(user):
+                try:
+                    data = {
+                        'claster': [claster_number],
+                        'trip_date_time': [trip_date_time]
+                    }
 
-    try:
-        data = {
-            'claster number': [claster_number],
-            'trip date time': [trip_date_time]
-        }
+                    new_request = MLRequest(id=uuid.uuid4(), claster=claster_number, pickup_date_time=trip_date_time, user_id=user.id)
+                    create_request(new_request=new_request, session=session)
+                    rabbitmq = RabbitMQ()
+                    message = json.dumps(
+                        {
+                            "request_id": str(new_request.id), 
+                        }
+                    )
+                    rabbitmq.send_task(message=message)
+                    return templates.TemplateResponse("personal_cabinet.html", {"request": request})
 
-        df = pd.DataFrame(data)
-        model_path = 'shared_data/xgboost_model.pkl'
-        
-        if not os.path.exists(model_path):
-            raise HTTPException(status_code=404, detail="Model file not found")
 
-        with open(model_path, 'rb') as file:
-            model = joblib.load(file)
-
-        prediction = model.predict(df)
-        return {"predicted_quality": int(prediction[0])}
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+                    return {"predicted_quality": int(prediction[0])}
+                    
+                except Exception as e:
+                    raise HTTPException(status_code=500, detail=str(e))
 
 
 

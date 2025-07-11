@@ -12,6 +12,13 @@ from sqlmodel import Session
 import io
 import uuid
 
+
+def get_is_weekend(date_time:datetime):
+    if date_time.datetime.weekday() > 5:
+        return False
+    else
+        return True
+
 class MlRunner:
 
     def __init__(self):
@@ -23,7 +30,14 @@ class MlRunner:
     
     def get_prediction(self, request:Request)->Optional[Response]:
         
-        request_image = Image.open(request.image).convert('RGB')
+        pickup_date_time = request.pickup_date_time  
+
+        new_data = pd.DataFrame({
+        'cluster': [value1],
+        'feature2': [value2]
+        })
+        
+
         inputs = self.__mlmodel.image_processor(request_image, return_tensors="pt")
         outputs = self.__mlmodel.model.generate(**inputs)
         image_description=self.__mlmodel.image_processor.decode(outputs[0], skip_special_tokens=True)
