@@ -1,0 +1,48 @@
+{% block content %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Простая таблица</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">История предсказаний</h1>
+        
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <!-- Таблица -->
+            <table class="min-w-full divide-y divide-gray-200">
+                <!-- Заголовки таблицы -->
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Дата</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Картинка</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Предсказание</th>
+                    </tr>
+                </thead>
+                {% for response in responses %}
+                <!-- Тело таблицы -->
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{response.date_time}}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{response.request.image}}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{response.response}}</td>
+                    </tr>
+                </tbody>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</body>
+    <form action="/user/personal_account" method="POST">
+        <a class="nav-item flex items-center px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+            <i class="fa fa-user-circle">
+                <button type="submit">Вернуться в личный кабинет</button>
+            </i>
+        </a>
+    </form>
+</html>
+{% endblock content %}

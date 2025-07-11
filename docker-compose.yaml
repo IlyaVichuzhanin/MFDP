@@ -1,0 +1,144 @@
+services: 
+  app:
+    build: ./app/
+    image: taxi-demand-forecast-service:latest
+    container_name: taxi-demand-forecast-container-app
+    command: uvicorn api:app --host 0.0.0.0 --port 8080
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    env_file:
+    - ./app/.env
+    volumes:
+      - ./app:/app
+      - shared-data:/app/shared
+    networks:
+      - myml-network
+    # healthcheck:
+    #   test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/test')"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 20s
+
+  web:
+    image: nginx:latest
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    # depends_on:
+    #   app:
+    #     condition: service_healthy
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      # - ./nginx/ssl:/etc/nginx/ssl
+    networks:
+      - myml-network
+    
+  postgres:
+    image: postgres:12.3-alpine
+    container_name: taxi-demand-forecast-container-db
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql@14/data:rw
+    networks:
+      - myml-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    tty: true
+    stdin_open: true
+
+  ml_worker:
+    build: ./ml_worker/
+    image: taxi-demand-forecast-container-ml-worker:latest
+    container_name: taxi-demand-forecast-container-ml-worker
+    restart: unless-stopped
+    env_file:
+      - ./ml_worker/.env
+    volumes:
+      - ./ml_worker:/app
+      - ./app/database:/app/database
+      - ./app/services:/app/services
+      - ./app/models:/app/models
+      - shared-data:/app/shared
+    depends_on:
+      - postgres
+      - rabbitmq
+    networks:
+      - myml-network
+
+  rabbitmq:
+    image: rabbitmq:3.13.1-management-alpine
+    container_name: taxi-demand-forecast-container-rabbitmq
+    hostname: rabbitmq
+    restart: unless-stopped
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+      - RABBITMW_SERVER_ADDITIONAL_ERL_ARGS=-rabbit disk_free_limit 2147483648
+    volumes:
+       - ./rabbitmq:/var/lib/rabbitmq
+    ports:
+       - 15672:15672
+       - 5672:5672
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - myml-network
+  
+  pgadmin:
+    image: dpage/pgadmin4:4.23 
+    container_name: pgadmin4_container
+    user: root
+    restart: always
+    ports:
+      - "5050:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
+      - PGADMIN_LISTEN_PORT=${PGADMIN_PORT}
+    volumes:
+      - ./pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - myml-network
+
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+  shared-data:
+
+networks:
+  myml-network:
+    name: myml-network
+    driver: bridge
+
+
+
+

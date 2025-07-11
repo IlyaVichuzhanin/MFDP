@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Простая боковая панель</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sidebar {
+            transition: width 0.3s ease;
+        }
+        .sidebar-collapsed {
+            width: 250px;
+        }
+        .sidebar-expanded {
+            width: 250px;
+        }
+        .nav-text {
+            transition: opacity 0.2s ease;
+        }
+        .toggle-btn {
+            transition: transform 0.3s ease;
+        }
+        .toggle-btn-rotated {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex">
+    <!-- Боковая панель -->
+    <div id="sidebar" class="sidebar sidebar-collapsed h-full bg-white shadow-md fixed flex flex-col">
+        <!-- Заголовок -->
+        <div class="p-4 border-b border-gray-200 flex items-center justify-center h-16">
+            <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+                <i class="fas fa-cube"></i>
+            </div>
+            <span id="logo-text" class="nav-text ml-3 font-bold text-gray-700 hidden">MyApp</span>
+        </div>
+        <!-- Кнопки навигации -->
+        <nav class="flex-1 overflow-y-auto py-4">
+            <form action="/responses/get_user_predictions" method="get">
+                <a class="nav-item flex items-center px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                    <i class="fas fa-file-alt">
+                        <button type="submit">История предсказаний
+                        
+                        </button>
+                    </i>
+                </a>
+            </form>
+            <form action="/balance/get_user_balance" method="get">
+                <a class="nav-item flex items-center px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                    <i class="fas fa-chart-bar">
+                        <button type="submit">Баланс
+                        
+                        </button>
+                    </i>
+                </a>
+            </form>
+            <form action="/user/logout" method="post">
+                <a class="nav-item flex items-center px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                    <i class="fa fa-sign-out">
+                        <button type="submit">Выйти
+                        
+                        </button>
+                    </i>
+                </a>
+            </form>
+        </nav>
+    </div>
+    <!-- Основное содержимое -->
+    <div id="main-content" class="flex-1 ml-[250px] p-8 transition-all duration-300">
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-6">Создать предсказание по модели</h2>
+            <form method="post" class="flex-1 p-6" action="/ml/get_prediction"  enctype="multipart/form-data">
+              <div class="upload-container bg-white rounded-xl shadow-lg overflow-hidden w-full max-w-md">
+              <div class="p-6">
+                  <h2 class="text-2xl font-bold text-gray-800 mb-2">Загрузите изображение</h2>
+                  <p class="text-gray-600 mb-6">Поддерживаются форматы JPG до 5MB</p>
+                  
+                  <!-- Основная область загрузки -->
+                  <div id="upload-area" class="upload-area relative rounded-lg p-8 text-center cursor-pointer mb-4">
+                      <input name="file" type="file" id="file-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*">
+                      <div id="upload-content" class="space-y-3">
+                          <div class="mx-auto w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center">
+                              <i class="fas fa-cloud-upload-alt text-3xl text-indigo-500"></i>
+                          </div>
+                          <h3 class="text-lg font-medium text-gray-800">Перетащите сюда изображение</h3>
+                          <p class="text-sm text-gray-500">или кликните для выбора файла</p>
+                          <div class="text-xs text-gray-400 mt-2">
+                              <span class="inline-block px-2 py-1 bg-gray-100 rounded-md">JPG</span>
+                          </div>
+                      </div>
+                      <!-- Предпросмотр изображения -->
+                      <img id="image-preview" class="image-preview mx-auto max-w-full h-auto rounded-lg object-cover" src="#" alt="Предпросмотр">
+                      
+                      <!-- Прогресс бар -->
+                      <div id="progress-container" class="absolute bottom-0 left-0 right-0 h-1 bg-gray-200 hidden">
+                          <div id="progress-bar" class="progress-bar bg-indigo-500 w-0"></div>
+                      </div>
+                  </div>
+                  <!-- Успешная загрузка -->
+                  <div id="upload-success" class="upload-success bg-green-50 text-green-700 p-4 rounded-lg flex items-center mb-4">
+                      <i class="fas fa-check-circle text-xl mr-3"></i>
+                      <div>
+                          <p class="font-medium">Изображение успешно загружено!</p>
+                          <p id="file-name" class="text-sm opacity-80"></p>
+                      </div>
+                  </div>
+                  <!-- Детали изображения -->
+                  <div id="image-details" class="hidden space-y-3 text-sm text-gray-600 border-t pt-4 mt-4">
+                      <div class="flex justify-between">
+                          <span>Размер:</span>
+                          <span id="file-size" class="font-medium"></span>
+                      </div>
+                      <div class="flex justify-between">
+                          <span>Разрешение:</span>
+                          <span id="file-resolution" class="font-medium"></span>
+                      </div>
+                      <div class="flex justify-between">
+                          <span>Формат:</span>
+                          <span id="file-type" class="font-medium"></span>
+                      </div>
+                  </div>
+                  <!-- Кнопки действий -->
+                  <div class="flex space-x-3 mt-6">
+                      <form method="post" action="/ml/get_prediction" enctype="multipart/form-data">
+                          <button id="upload-btn" class="flex-1 py-2 px-4 bg-indigo-600 rounded-lg text-white font-medium hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                              Распознать
+                          </button>
+                      </form>
+                      <button id="cancel-btn" class="flex-1 py-2 px-4 border border-gray-300 rounded-lg text-gray-7 font-medium hover:bg-gray-50 transition hidden">
+                          Отменить
+                      </button>
+                  </div>
+              </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('file-input');
+        const uploadArea = document.getElementById('upload-area');
+        const uploadContent = document.getElementById('upload-content');
+        const imagePreview = document.getElementById('image-preview');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const uploadSuccess = document.getElementById('upload-success');
+        const fileName = document.getElementById('file-name');
+        const imageDetails = document.getElementById('image-details');
+        const fileSize = document.getElementById('file-size');
+        const fileResolution = document.getElementById('file-resolution');
+        const fileType = document.getElementById('file-type');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const uploadBtn = document.getElementById('upload-btn');
+        
+        // Обработчики событий для drag and drop
+        ['dragenter', 'dragoover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, () => {
+                uploadArea.classList.add('active');
+            });
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, () => {
+                uploadArea.classList.remove('active');
+            });
+        });
+        
+        // Обработка drop
+        uploadArea.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length) {
+                handleFiles(files);
+            }
+        }
+        
+        // Обработка выбора файла через клик
+        fileInput.addEventListener('change', function() {
+            if (this.files.length) {
+                handleFiles(this.files);
+            }
+        });
+        
+        // Обработка файлов
+        function handleFiles(files) {
+            const file = files[0];
+            
+            // Проверка типа файла
+            if (!file.type.match('image.*')) {
+                alert('Пожалуйста, выберите файл изображения (JPG, PNG, GIF)');
+                return;
+            }
+            
+            // Проверка размера файла (до 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Файл слишком большой. Максимальный размер 5MB');
+                return;
+            }
+            
+            // Показываем предпросмотр
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                imagePreview.onload = function() {
+                    // Показываем информацию о изображении
+                    fileSize.textContent = formatFileSize(file.size);
+                    fileResolution.textContent = `${this.naturalWidth} × ${this.naturalHeight} px`;
+                    fileType.textContent = file.type.split('/')[1].toUpperCase();
+                    
+                    // Показываем элементы
+                    uploadContent.style.display = 'none';
+                    imagePreview.style.display = 'block';
+                    imageDetails.classList.remove('hidden');
+                    cancelBtn.classList.remove('hidden');
+                    uploadBtn.disabled = false;
+                };
+            };
+            
+            reader.readAsDataURL(file);
+        }
+        
+        // Форматирование размера файла
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' bytes';
+            else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+            else return (bytes / 1048576).toFixed(1) + ' MB';
+        }
+        // Симуляция загрузки
+        uploadBtn.addEventListener('click', function() {
+            // Показываем прогресс бар
+            progressContainer.classList.remove('hidden');
+            
+            // Симулируем загрузку
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress > 100) progress = 100;
+                progressBar.style.width = progress + '%';
+                
+                if (progress === 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        // Показываем успешное сообщение
+                        fileName.textContent = fileInput.files[0].name;
+                        uploadSuccess.classList.add('show');
+                        
+                        // Скрываем ненужные элементы
+                        progressContainer.classList.add('hidden');
+                        cancelBtn.classList.add('hidden');
+                        uploadBtn.disabled = true;
+                        
+                        // Через 3 секунды сбрасываем форму
+                        setTimeout(resetForm, 3000);
+                    }, 300);
+                }
+            }, 100);
+        });
+        // Кнопка отмены
+        cancelBtn.addEventListener('click', resetForm);
+        // Сброс формы
+        function resetForm() {
+            fileInput.value = '';
+            uploadContent.style.display = 'block';
+            imagePreview.style.display = 'none';
+            imagePreview.src = '#';
+            progressBar.style.width = '0';
+            progressContainer.classList.add('hidden');
+            uploadSuccess.classList.remove('show');
+            imageDetails.classList.add('hidden');
+            cancelBtn.classList.add('hidden');
+            uploadBtn.disabled = true;
+            uploadArea.classList.remove('active');
+        }
+    </script>
+</body>
+</html>
