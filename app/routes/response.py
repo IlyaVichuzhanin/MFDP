@@ -15,17 +15,15 @@ settings=get_settings()
 
 @response_router.get("/get_user_predictions")
 async def get_user_predictions(request: Request, session=Depends(get_session)):
-    token=request.cookies.get(settings.COOKIE_NAME)
-    user_email = await authenticate_cookie(token)
-    if token:
-        if user_email:
-            user = UserService.get_user_by_email(user_email,session)
-            if(user):
-                responses = ResponseService.get_user_responses(user.id,session)
-                context={
-                    "responses": responses,
-                    "request": request
-                }
-                return templates.TemplateResponse("prediction_hystory.html", context) 
-    
-    return templates.TemplateResponse("signup.html", context)
+    user_payload = await authenticate_cookie(request)
+    user_email = user_payload.get('user') if user_payload else None
+    if user_email:
+        user = UserService.get_user_by_email(user_email, session)
+        if user:
+            responses = ResponseService.get_user_responses(user.id, session)
+            context = {
+                "responses": responses,
+                "request": request
+            }
+            return templates.TemplateResponse("prediction_hystory.html", context)
+    return templates.TemplateResponse("signup.html", {"request": request})

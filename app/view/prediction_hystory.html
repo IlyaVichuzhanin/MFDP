@@ -19,20 +19,27 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Дата</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Картинка</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Район</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Время</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Предсказание</th>
                     </tr>
                 </thead>
-                {% for response in responses %}
-                <!-- Тело таблицы -->
                 <tbody class="bg-white divide-y divide-gray-200">
+                {% if responses and responses|length > 0 %}
+                    {% for response in responses %}
                     <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{response.date_time}}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{response.request.image}}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{response.response}}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ response.date_time }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ response.request.cluster }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ response.request.pickup_date_time }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ response.response }}</td>
                     </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="px-6 py-4 text-center text-gray-400">Нет данных</td>
+                    </tr>
+                {% endif %}
                 </tbody>
-                {% endfor %}
             </table>
         </div>
     </div>

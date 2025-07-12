@@ -33,94 +33,38 @@ def logout(request: Request):
 @user_router.post('/signup')
 def signup(request: Request):
     return templates.TemplateResponse("signup.html", {"request": request}) 
-
-@user_router.post('/personal_account')
-def get_personal_account(request: Request):
-    return templates.TemplateResponse("personal_cabinet.html", {"request": request}) 
     
  
 @user_router.post('/register')
-async def register(
-    response: Response,
-    email: str = Form(...),
-    password: str = Form(...),
-    session: Session = Depends(get_session)
-):
-    # Проверяем, существует ли пользователь
-    user_exist = UserService.get_user_by_email(email, session)
+async def register(request: Request, response: Response, email: str = Form(...), password: str = Form(...), session=Depends(get_session)):
+    user_exist=UserService.get_user_by_email(email, session)    
     if user_exist:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="User with supplied email already exists"
-        )
-
-    # Создаем нового пользователя
-    hashed_password = hash_password.create_hash(password)
-    new_user = User(email=email, hashed_password=hashed_password)
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User with supplied username exists")
+    
+    hashed_password=hash_password.create_hash(password)
+    new_user=User(email=email, hashed_password=hashed_password)
     UserService.create_user(new_user, session)
-
-    # Генерируем токен
-    access_token = create_access_token(new_user.email)
-
-    # Редиректим на личный кабинет с установкой кук
-    redirect_url = "/user/personal_account"
-    redirect = RedirectResponse(url=redirect_url, status_code=status.HTTP_302_FOUND)
-
-    # Устанавливаем куку
-    redirect.set_cookie(
-        key=settings.COOKIE_NAME,
-        value=access_token,
-        httponly=True,
-        secure=False,  # True, если используете HTTPS
-        expires=settings.TIME_EXPIRES,
-        path="/",
-        domain="localhost"  # или ваш домен
-    )
-
+    access_token=create_access_token(new_user.email)
+    redirect = RedirectResponse(url="/user/personal_account", status_code=302)
+    redirect.set_cookie(key=settings.COOKIE_NAME, value=access_token, httponly=True, expires=settings.TIME_EXPIRES)
     return redirect
 
 
 @user_router.post('/login')
-async def login(
-    response: Response,
-    email: str = Form(...),
-    password: str = Form(...),
-    session: Session = Depends(get_session)
-):
-    # Проверяем существование пользователя
-    user = UserService.get_user_by_email(email, session)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User does not exist"
-        )
+async def login(request: Request, response: Response, email: str = Form(...), password: str = Form(...), session=Depends(get_session)):
+    user_exist = UserService.get_user_by_email(email, session)
+    if not user_exist:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User does not exist")
 
-    # Проверяем пароль
-    if not hash_password.verify_hash(password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect password"
-        )
+    if hash_password.verify_hash(password, user_exist.hashed_password):
+        access_token = create_access_token(user_exist.email)
+        redirect = RedirectResponse(url="/user/personal_account", status_code=302)
+        redirect.set_cookie(key=settings.COOKIE_NAME, value=access_token, httponly=True, expires=settings.TIME_EXPIRES)
+        return redirect
 
-    # Создаем токен
-    access_token = create_access_token(user.email)
-
-    # Редиректим с корректным статус-кодом
-    redirect_url = "/user/personal_account"
-    redirect = RedirectResponse(url=redirect_url, status_code=status.HTTP_302_FOUND)
-
-    # Устанавливаем куку
-    redirect.set_cookie(
-        key=settings.COOKIE_NAME,
-        value=access_token,
-        httponly=True,
-        secure=False,  # True, если используете HTTPS
-        expires=settings.TIME_EXPIRES,
-        path="/",
-        domain="localhost"  # или ваш домен
-    )
-
-    return redirect
+@user_router.get('/login')
+def login_form(request: Request):
+    return templates.TemplateResponse("signin.html", {"request": request})
 
 @user_router.get('/personal_account')
 def get_personal_account(request: Request, user: dict = Depends(authenticate_cookie)):
